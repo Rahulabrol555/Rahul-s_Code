@@ -1,0 +1,27 @@
+TYPES tt_char TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+sentence = condense( sentence ).
+cl_demo_output=>write( |Number of words: { count_any_of( val = sentence  sub = ` ` )  + 1  } | ).
+DATA(lt_chars) = VALUE tt_char( FOR i = 0 THEN i + 1 UNTIL i = strlen( sentence ) ( sentence+i(1) ) ).
+DATA(lt_chars_t) = lt_chars[].
+DATA(lt_chars_w) = lt_chars[].
+REFRESH:lt_chars_t[] , lt_chars_w[].
+LOOP AT lt_chars INTO DATA(ls_char).
+  IF sy-tabix = 1.
+    APPEND ls_char TO lt_chars_t.
+    APPEND ls_char TO lt_chars_w.
+    CONTINUE.
+  ENDIF.
+  IF ls_char = ' ' OR ls_char = space OR ls_char = | |.
+    cl_demo_output=>write( |Number of unique characters in the word: { concat_lines_of( table = lt_chars_w ) } - { lines( lt_chars_t ) } | ).
+    REFRESH:lt_chars_t[],lt_chars_w[].
+  ELSE.
+    READ TABLE lt_chars_t TRANSPORTING NO FIELDS WITH KEY table_line = ls_char.
+    IF sy-subrc <> 0.
+      APPEND ls_char TO lt_chars_t.
+    ENDIF.
+    APPEND ls_char TO lt_chars_w.
+  ENDIF.
+  AT LAST.
+    cl_demo_output=>write( |Number of unique characters in the word: { concat_lines_of( table = lt_chars_w ) } - { lines( lt_chars_t ) } | ).
+  ENDAT.
+ENDLOOP.
